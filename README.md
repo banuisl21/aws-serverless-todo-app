@@ -29,9 +29,27 @@ A fully serverless todo application built using AWS services with CRUD functiona
 ### Option 1: AWS SAM
 ```bash
 # Clone this repository
-git clone https://github.com/yourusername/aws-serverless-todo.git
-cd aws-serverless-todo
+git clone https://github.com/banuisl121/aws-serverless-todo-app.git
+cd aws-serverless-todo-app
 
 # Deploy
+#configure AWS credentials
+aws configure
+
+#Build the application
 sam build
+
+#Deploy for the first time
 sam deploy --guided
+
+During deployment
+
+Stack Name: aws-serverless-todo-app
+AWS Region: ap-south-1
+Confirm changes before deploy: Y
+Allow SAM CLI IAM role creation: Y
+Save arguments: Y
+
+After deployment
+sam list stack-outputs
+
