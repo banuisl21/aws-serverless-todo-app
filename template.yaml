@@ -28,7 +28,51 @@ Resources:
       KeySchema:
         - AttributeName: taskId
           KeyType: HASH
+
+  TodoFunction:
+    Type: AWS::Serverless::Function  
+    Properties:
+      FunctionName: TaskFlowFunction
+      CodeUri: src/
+      Handler: app.lambda_handler
+
+      Environment:
+       Variables:
+        TABLE_NAME: !Ref TodoTable
+        
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTable
+
+      Events:
+        CreateTask:
+          Type: Api
+          Properties:
+            Path: /tasks
+            Method: post
+          
+        GetTasks:
+          Type: Api
+          Properties:
+            Path: /tasks
+            Method: get
+
+        UpdateTask:
+          Type: Api
+          Properties:
+            Path: /tasks/{taskId}
+            Method: put
+
+        DeleteTask:
+          Type: Api
+          Properties:
+            Path: /tasks/{taskId}
+            Method: delete
 Outputs:
+   ApiUrl:
+    Description: API Gateway Endpoint
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/tasks"
+
    TableName:
     Description: DynamoDB Table Name
     Value: !Ref TodoTable
