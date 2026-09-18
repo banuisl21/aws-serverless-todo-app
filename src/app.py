@@ -13,6 +13,7 @@ def lambda_handler(event, context):
     """
     AWS Lambda entry point for TaskFlow CRUD operations.
     """
+    """raise Exception("CloudWatch alarm test - intentional Lambda error")"""
 
     try:
         method = event.get("httpMethod")
