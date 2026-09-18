@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: 
+  TaskFlow - Production Ready Serverless Task Management API
+
+Globals:
+  Function:
+    Runtime: python3.13
+    Timeout: 10
+    MemorySize: 128
+    Architectures:
+      - x86_64
+
+Resources:
+
+  TodoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: TaskFlowTable
+
+      BillingMode: PAY_PER_REQUEST
+
+      AttributeDefinitions:
+        - AttributeName: taskId
+          AttributeType: S
+
+      KeySchema:
+        - AttributeName: taskId
+          KeyType: HASH
+
+  TodoFunction:
+    Type: AWS::Serverless::Function  
+    Properties:
+      FunctionName: TaskFlowFunction
+      CodeUri: src/
+      Handler: app.lambda_handler
+
+      Environment:
+       Variables:
+        TABLE_NAME: !Ref TodoTable
+        
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTable
+
+      Events:
+        CreateTask:
+          Type: Api
+          Properties:
+            Path: /tasks
+            Method: post
+          
+        GetTasks:
+          Type: Api
+          Properties:
+            Path: /tasks
+            Method: get
+
+        UpdateTask:
+          Type: Api
+          Properties:
+            Path: /tasks/{taskId}
+            Method: put
+
+        DeleteTask:
+          Type: Api
+          Properties:
+            Path: /tasks/{taskId}
+            Method: delete
+
+   # CloudWatch Alarm for Lambda errors
+  TaskFlowLambdaErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: TaskFlow-Lambda-Errors
+      AlarmDescription: Alarm when TaskFlow Lambda reports an error
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref TodoFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+      
+Outputs:
+   ApiUrl:
+    Description: API Gateway Endpoint
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/tasks"
+
+   TableName:
+    Description: DynamoDB Table Name
+    Value: !Ref TodoTable
